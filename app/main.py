@@ -11,7 +11,7 @@ app = FastAPI(
 class TaskCreate(BaseModel):
     """Dados recebidos para criar uma tarefa."""
 
-    title: str = Field(min_length=3, max_length=80, examples=["Estudar Actions"])
+    title: str = Field(min_length=4, max_length=80, examples=["Estudar Actions"])
 
 
 class Task(TaskCreate):
