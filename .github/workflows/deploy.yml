@@ -29,7 +29,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1 # Altere se sua região AWS for diferente
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
 
       - name: Login no Amazon ECR
         id: login-ecr
@@ -38,7 +39,7 @@ jobs:
       - name: Construir e enviar imagem para o ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: devops-python-api # Altere para o nome do seu repositório ECR
+          ECR_REPOSITORY: devops-python-api
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -52,29 +53,23 @@ jobs:
       - name: Conectar na EC2 e atualizar contêiner
         uses: appleboy/ssh-action@v1.0.3
         env:
-          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com # Altere a região
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
           ECR_REPOSITORY: devops-python-api
           IMAGE_TAG: ${{ github.sha }}
           AWS_REGION: us-east-1
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu # Altere para 'ec2-user' se usar Amazon Linux
+          username: ubuntu # Se a tua EC2 usar Amazon Linux, altera para ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,AWS_REGION
           script: |
-            # Autentica o Docker da instância no ECR usando a IAM Role da EC2
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
-            
-            # Baixa a imagem correspondente ao commit
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             
-            # Substitui o contêiner anterior
             docker stop devops-python-api || true
             docker rm devops-python-api || true
             
-            # Inicia a aplicação atualizada
             docker run -d --name devops-python-api -p 8000:8000 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             
-            # Verifica se o contêiner está em execução
             sleep 5
             docker ps | grep devops-python-api
