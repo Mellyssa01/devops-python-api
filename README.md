@@ -1,6 +1,7 @@
 # API Python para demonstrar DevOps
 
 
+
 Repositório didático para apresentar, em uma única aplicação, três ideias que se conectam:
 
 1. uma API HTTP escrita em Python;
