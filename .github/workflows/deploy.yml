@@ -13,7 +13,7 @@ permissions:
 env:
   # Utilizando a variável do repositório conforme imagem
   AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_REPOSITORY: repo/trabalho
+  ECR_REPOSITORY: devops-python-api
   CONTAINER_NAME: devops-python-api
   APP_PORT: "8000"
 
