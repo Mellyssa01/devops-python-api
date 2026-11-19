@@ -8,6 +8,7 @@ jobs:
   build-and-push:
     name: Teste, Build e Publicação no ECR
     runs-on: ubuntu-latest
+    environment: DES
     steps:
       - name: Obter o código
         uses: actions/checkout@v4
@@ -49,6 +50,7 @@ jobs:
     name: Deploy automatizado na EC2
     needs: build-and-push
     runs-on: ubuntu-latest
+    environment: DES
     steps:
       - name: Conectar na EC2 e atualizar contêiner
         uses: appleboy/ssh-action@v1.0.3
