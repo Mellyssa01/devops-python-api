@@ -8,6 +8,7 @@ jobs:
   build-and-push:
     name: Teste, Build e Publicação no ECR
     runs-on: ubuntu-latest
+    environment: DES
     steps:
       - name: Obter o código
         uses: actions/checkout@v4
@@ -29,7 +30,6 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
       - name: Login no Amazon ECR
@@ -49,6 +49,7 @@ jobs:
     name: Deploy automatizado na EC2
     needs: build-and-push
     runs-on: ubuntu-latest
+    environment: DES
     steps:
       - name: Conectar na EC2 e atualizar contêiner
         uses: appleboy/ssh-action@v1.0.3
@@ -60,7 +61,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu # Se a tua EC2 usar Amazon Linux, altera para ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,AWS_REGION
           script: |
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
